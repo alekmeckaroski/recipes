@@ -1,0 +1,25 @@
+@import org.mdedetrich.SbtDigestReverseRouter.findVersionedAsset
+@import io.circe.syntax._
+
+@import com.lunatech.goldenalgo.onboarding.utils.FindScript
+@prefix = @{
+  "http://localhost:8080"
+}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>"Audi - GA"</title>
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  </head>
+
+  <body class="primary">
+    <div id="scalajsShoutOut"></div>
+    <script src="@prefix/@FindScript.client" type="application/javascript"></script>
+    <script src="@prefix/@FindScript.clientDep" type="application/javascript"></script>
+  </body>
+
+</html>
