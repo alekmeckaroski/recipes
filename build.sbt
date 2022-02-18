@@ -7,7 +7,7 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 import sbtcrossproject.CrossType
 
 lazy val root = (project in file("."))
-  .aggregate(server, client)
+  .aggregate(server, client, shared.js, shared.jvm)
 
 lazy val server = (project in file("server"))
   .settings(
@@ -37,7 +37,7 @@ lazy val server = (project in file("server"))
     Runtime / managedClasspath += (Assets / packageBin).value,
   )
   .enablePlugins(SbtWeb, SbtTwirl, JavaAppPackaging)
-//  .dependsOn(shared.jvm)
+  .dependsOn(shared.jvm)
 
 def toPathMapping(f: File): (File, String) = f -> f.getName
 
@@ -96,15 +96,15 @@ lazy val client = (project in file("client"))
       library.reactDomServer,
       library.reactMarkdown)
   )
-//  .dependsOn(shared.js)
+  .dependsOn(shared.js)
 
 val useFastOptJs = sys.env.exists(envVar => envVar._1 == "FAST_OPT_JS" && envVar._2 == "true")
 Global / scalaJSStage := (if (useFastOptJs) FastOptStage else FullOptStage)
 
-//lazy val shared = crossProject(JSPlatform, JVMPlatform)
-//  .crossType(CrossType.Pure)
-//  .in(file("shared"))
-//  .jsConfigure(_.enablePlugins(ScalaJSPlugin,
-//    ScalaJSWeb,
-//    JSDependenciesPlugin))
-//  .jsSettings(packageJSDependencies / skip := false)
+lazy val shared = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("shared"))
+  .jsConfigure(_.enablePlugins(ScalaJSPlugin,
+    ScalaJSWeb,
+    JSDependenciesPlugin))
+  .jsSettings(packageJSDependencies / skip := false)

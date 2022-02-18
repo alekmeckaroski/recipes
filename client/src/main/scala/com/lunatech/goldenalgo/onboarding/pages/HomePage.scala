@@ -1,14 +1,14 @@
 package com.lunatech.goldenalgo.onboarding.pages
 
 import com.lunatech.goldenalgo.onboarding.components.RecipeComponent
-import com.lunatech.goldenalgo.onboarding.diode.{AppCircuit, AppState, GetRecipes}
-import com.lunatech.goldenalgo.onboarding.models.{Recipe, User}
+import com.lunatech.goldenalgo.onboarding.diode.{AppCircuit, AppState, GetRecipes, RemoveRecipe}
+import com.lunatech.goldenalgo.onboarding.models.{Recipe}
 import com.lunatech.goldenalgo.onboarding.router.AppRouter.Page
 import diode.react.ModelProxy
 import io.circe.parser.decode
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^.{<, _}
-import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
+import japgolly.scalajs.react.{BackendScope, Callback, ReactEventFromInput, ScalaComponent}
 import org.scalajs.dom
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -18,11 +18,12 @@ object HomePage {
 
   case class Props(proxy: ModelProxy[AppState], ctl: RouterCtl[Page])
 
-  case class State(var isLoading: Boolean,
-                   var user: User,
-                   var recipes: List[Recipe])
+  case class State(isLoading: Boolean,
+                   searchQuery: String,
+                   recipes: List[Recipe])
 
   class Backend($: BackendScope[Props, State]) {
+    val host = "http://localhost:8080"
 
     def loadRecipes: Callback = {
       val url = "http://localhost:8080/recipes"
@@ -31,7 +32,9 @@ object HomePage {
         dom.ext.Ajax.get(url=s"$url").map(xhr => {
           val option = decode[List[Recipe]](xhr.responseText)
           option match {
-            case Left(failure) => List.empty[Recipe]
+            case Left(failure) => {
+              println(failure)
+              List.empty[Recipe] }
             case Right(data) => data
           }
         })
@@ -52,31 +55,83 @@ object HomePage {
 
     def openCreateModal(): Callback = Callback.alert("Will create")
 
+    def onDelete(name: String): Callback = {
+      val url = "http://localhost:8080/recipes"
+      dom.ext.Ajax.delete(url=s"$url/$name").map(xhr => {
+        val option = decode[String](xhr.responseText)
+        option match {
+          case Left(failure) => "Fail"
+          case Right(data) => {
+            println(data)
+            AppCircuit.dispatch(RemoveRecipe(name))
+          }
+        }
+      })
+
+      loadRecipes
+    }
+
+    def onSearchChange(e: ReactEventFromInput): Callback = {
+      val value = e.target.value
+      $.modState(s => s.copy(searchQuery = value))
+    }
+
+    def onSearchClick(query: String): Callback = {
+      def searchResult = dom.ext.Ajax.get(url=s"$host/search/$query").map(xhr => {
+        val option = decode[List[Recipe]](xhr.responseText)
+        option match {
+          case Left(failure) => {
+            println(failure)
+            List.empty[Recipe] }
+          case Right(data) => data
+        }
+      })
+
+      def updateResults = {
+        searchResult.map {recipes =>
+          $.modState(s => s.copy(
+            recipes = recipes
+          ))
+        }
+      }
+
+      Callback.future(updateResults)
+    }
+
     def render(props: Props, state: State) = {
       <.div(
-        <.h1("Home Page"),
         <.h2("Welcome"),
         <.h3("Your Recipes"),
+        <.div(
+          <.input.text(
+            ^.onChange ==> onSearchChange
+          ),
+          <.button(
+            "Search",
+            ^.onClick --> onSearchClick(state.searchQuery)
+          )
+        ),
         <.ul(
           state.recipes.map(recipe =>
             <.li(
               RecipeComponent.Component(RecipeComponent.Props(recipe))
-            )
+            ),
           ).toVdomArray
         ),
-      )
-      <.div(
-        <.button(
-          ^.onClick --> openCreateModal(),
-          "Create new Recipe"
+        <.div(
+          <.button(
+            ^.onClick --> openCreateModal(),
+            "Create new Recipe"
+          )
         )
       )
     }
   }
 
   val Component = ScalaComponent.builder[Props]("HomePage")
-    .initialState(State(isLoading = true,
-      user = User(123, "john.doe@example.com", List.empty[Recipe]),
+    .initialState(State(
+      isLoading = true,
+      searchQuery = "",
       recipes = List.empty[Recipe]))
     .renderBackend[Backend]
     .componentDidMount(scope => scope.backend.loadRecipes)

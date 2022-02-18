@@ -1,25 +1,18 @@
 package com.lunatech.goldenalgo.onboarding.models
 
+import scala.util.Try
 import com.sksamuel.elastic4s.{Hit, HitReader}
 import io.circe._
-import io.circe.generic.semiauto._
-
-import scala.util.Try
+import io.circe.generic.auto._
 
 case class Recipe(name: String,
                   ingredients: Seq[String],
-                  instructions: Seq[String],
-                 )//picture: String)
-
-object Recipe {
-  implicit val encoder: Encoder[Recipe] = deriveEncoder
-  implicit val decoder: Decoder[Recipe] = deriveDecoder
-}
+                  instructions: Seq[String])
 
 case class RecipeResponse(id: String,
                           name: String,
-                          ingredients: String,
-                          instructions: String)
+                          ingredients: Seq[String],
+                          instructions: Seq[String])
 
 object RecipeResponse {
   implicit object RecipeResponseHitReader extends HitReader[RecipeResponse] {
@@ -28,8 +21,9 @@ object RecipeResponse {
       Try(RecipeResponse(
         hit.id,
         source("name").toString,
-        source("ingredients").toString,
-        source("instructions").toString))
+        source("ingredients").asInstanceOf[Seq[String]],
+        source("instructions").asInstanceOf[Seq[String]]
+      ))
     }
   }
 }

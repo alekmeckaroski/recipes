@@ -5,7 +5,6 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Directives, Route}
 import com.lunatech.goldenalgo.onboarding.models.Recipe
 import com.lunatech.goldenalgo.onboarding.services.RecipeService
-import com.lunatech.goldenalgo.onboarding.shared.SharedMessages
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
@@ -55,10 +54,10 @@ class RecipeController()(implicit val ec: ExecutionContext) extends Directives {
       })
   }
 
-  val recipe: Route = path("recipes" / Segment) { name =>
+  val recipe: Route = path("recipes" / Segment) { id =>
     concat(
       get {
-        onComplete(recipeService.getRecipeByName(name)) {
+        onComplete(recipeService.getRecipeById(id)) {
           case scala.util.Success(recipe) =>
             complete(HttpEntity(ContentTypes.`application/json`, recipe.asJson.noSpaces))
           case scala.util.Failure(ex) =>
@@ -66,7 +65,7 @@ class RecipeController()(implicit val ec: ExecutionContext) extends Directives {
         }
       },
       delete {
-        onComplete(recipeService.deleteRecipe(name)) {
+        onComplete(recipeService.deleteRecipe(id)) {
           case scala.util.Success(recipe) =>
             complete(HttpEntity(ContentTypes.`application/json`, recipe.asJson.noSpaces))
           case scala.util.Failure(ex) =>

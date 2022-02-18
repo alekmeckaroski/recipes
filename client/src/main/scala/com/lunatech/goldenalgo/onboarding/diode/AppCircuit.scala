@@ -12,7 +12,6 @@ object AppCircuit extends Circuit[AppModel] with ReactConnector[AppModel] {
   def initialModel = AppModel(
     AppState(
       isLoggedIn = false,
-      user = None,
       isLoading = false,
       recipes = List.empty[Recipe]
     )
@@ -29,13 +28,17 @@ object AppCircuit extends Circuit[AppModel] with ReactConnector[AppModel] {
 class RecipePageHandler[M](modelRW: ModelRW[M, AppState]) extends ActionHandler(modelRW) {
   override def handle = {
     case GetRecipes(recipes) => updated(value.copy(recipes = recipes))
+    case RemoveRecipe(recipeName: String) => updated(value.copy(recipes = value.recipes.filterNot(_.name != recipeName)))
+    case AddRecipe(recipe: Recipe) => updated(value.copy(recipes = value.recipes :+ recipe))
+    case EditRecipe(recipe: Recipe) => {
+      val oldRecipe = value.recipes.find(r => r.name == recipe.name).get
+      updated(value.copy(recipes = value.recipes.updated(value.recipes.indexOf(oldRecipe), recipe)))
+    }
   }
 }
 
 class AppHandler[M](modelRW: ModelRW[M, AppState]) extends ActionHandler(modelRW) {
   override def handle = {
-    case Login(user) => updated(value.copy(isLoggedIn = true, user = Some(user)))
-    case Logout => updated(value.copy(isLoggedIn = false, user = None))
     case SetLoading() => updated(value.copy(isLoading = true))
     case ClearLoading() => updated(value.copy(isLoading = false))
   }

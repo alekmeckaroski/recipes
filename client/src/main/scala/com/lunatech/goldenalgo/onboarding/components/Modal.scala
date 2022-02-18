@@ -19,28 +19,28 @@ object Modal {
   class Backend($: BackendScope[Props, Unit]) {
     def render(props: Props): VdomElement = {
       <.div(
-        <.h1(props.recipe.name)
-      )
-      <.div(
-        <.label("Ingredients"),
-        <.ol(
-          props.recipe.ingredients.toVdomArray
-        )
-      )
-      <.div(
-        <.label("Instructions"),
-        <.ol(
-          props.recipe.instructions.toVdomArray
-        )
-      )
-      <.div(
-        <.button(
-          ^.onClick --> discardChanges,
-          "Cancel"
+        <.h1(props.recipe.name),
+        <.div(
+          <.label("Ingredients"),
+          <.ol(
+            props.recipe.ingredients.toVdomArray
+          )
         ),
-        <.button(
-          ^.onClick --> saveChanges,
-          "Confirm"
+        <.div(
+          <.label("Instructions"),
+          <.ol(
+            props.recipe.instructions.toVdomArray
+          )
+        ),
+        <.div(
+          <.button(
+            ^.onClick --> discardChanges,
+            "Cancel"
+          ),
+          <.button(
+            ^.onClick --> saveChanges,
+            "Confirm"
+          )
         )
       )
     }

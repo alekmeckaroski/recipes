@@ -14,28 +14,29 @@ object RecipeComponent {
 
     def render(props: Props): VdomElement = {
       <.div(
-        <.h1(props.recipe.name)
-      )
-      <.div(
-        <.label("Ingredients"),
-        <.ol(
-          props.recipe.ingredients.toVdomArray
-        )
-      )
-      <.div(
-        <.label("Instructions"),
-        <.ol(
-          props.recipe.instructions.toVdomArray
-        )
-      )
-      <.div(
-        <.button(
-          ^.onClick --> Callback.alert(props.recipe.name),
-          "Delete"
+        <.h1(props.recipe.name),
+        <.div(
+          <.label("Ingredients"),
+          <.ol(
+            props.recipe.ingredients.map(ingredient =>
+              <.li(ingredient)
+            ).toVdomArray
+          ),
         ),
-        <.button(
-          ^.onClick --> Callback.alert(props.recipe.name),
-          "Edit"
+        <.div(
+            <.label("Instructions"),
+            <.ol(
+              props.recipe.instructions.map(instruction =>
+                <.li(instruction)
+              ).toVdomArray
+            ),
+          ),
+        <.br,
+        <.div(
+          <.button(
+            ^.onClick --> Callback.alert(props.recipe.name),
+            "Edit"
+          )
         )
       )
     }
