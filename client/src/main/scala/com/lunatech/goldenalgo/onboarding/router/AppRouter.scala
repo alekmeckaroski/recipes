@@ -25,7 +25,7 @@ object AppRouter {
 
     (trimSlashes
       | staticRoute(root, Page.Home) ~> renderR(renderHomePage)
-//      | dynamicRouteCT(("recipes" / string).caseClass[Page.Recipe]) ~> dynRenderR(renderRecipePage)
+      | dynamicRouteCT("recipes" / string(".*").caseClass[Page.Recipe]) ~> dynRenderR(renderRecipePage)
       )
       .notFound(redirectToPage(Page.Home)(SetRouteVia.HistoryReplace))
 //       .renderWith(layout)
@@ -35,8 +35,8 @@ object AppRouter {
     connection(proxy => HomePage.Component(HomePage.Props(proxy, ctl)))
   }
 
-  def renderRecipePage(r: Page.Recipe, ctl: RouterCtl[Page]) = {
-     connection(proxy => RecipePage.Component(RecipePage.Props(proxy, r, ctl)))
+  def renderRecipePage(page: Page.Recipe, ctl: RouterCtl[Page]) = {
+     connection(proxy => RecipePage.Component(RecipePage.Props(proxy, page, ctl)))
   }
 
   val baseUrl = BaseUrl.fromWindowOrigin_/
